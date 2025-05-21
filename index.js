@@ -3,13 +3,22 @@ import { useState } from 'react';
 export default function Home() {
   const [audio, setAudio] = useState(null);
   const [started, setStarted] = useState(false);
+  const [loading, setLoading] = useState(false);
 
-  const startRadio = () => {
-    const streamUrl = "/stream.mp3"; // Substitua com a URL do seu stream real
-    const newAudio = new Audio(streamUrl);
-    newAudio.play();
-    setAudio(newAudio);
-    setStarted(true);
+  const startRadio = async () => {
+    setLoading(true);
+    try {
+      const response = await fetch('/api/tts?text=Bem-vindo ao StreamWave!');
+      const blob = await response.blob();
+      const url = URL.createObjectURL(blob);
+      const newAudio = new Audio(url);
+      newAudio.play();
+      setAudio(newAudio);
+      setStarted(true);
+    } catch (error) {
+      console.error("Erro ao gerar locução:", error);
+    }
+    setLoading(false);
   };
 
   return (
@@ -18,6 +27,7 @@ export default function Home() {
       {!started ? (
         <button
           onClick={startRadio}
+          disabled={loading}
           style={{
             padding: '10px 20px',
             fontSize: '18px',
@@ -28,10 +38,10 @@ export default function Home() {
             cursor: 'pointer'
           }}
         >
-          Iniciar Rádio
+          {loading ? 'Carregando...' : 'Iniciar Rádio'}
         </button>
       ) : (
-        <p>Rádio tocando...</p>
+        <p>Rádio tocando com locução</p>
       )}
     </div>
   );
